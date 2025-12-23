@@ -101,5 +101,5 @@ print(f"Test Accuracy: {test_accuracy:.4f}")
 # -----------------------------
 # 9. Save Model
 # -----------------------------
-model.save("imdb_simple_rnn_model.h5")
+model.save("simple_rnn_imdb.keras")
 print("Model saved as imdb_simple_rnn_model.h5")
