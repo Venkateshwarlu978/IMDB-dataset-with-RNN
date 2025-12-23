@@ -1,13 +1,11 @@
-# app.py
-import streamlit as st
+import os
 import tensorflow as tf
-from tensorflow.keras.datasets import imdb
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# -----------------------------
-# Load model
-# -----------------------------
-model = tf.keras.models.load_model("SimpleRNN/simple_rnn_imdb.h5")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
+
+model = tf.keras.models.load_model(MODEL_PATH)
+
 
 
 # -----------------------------
