@@ -7,7 +7,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 # -----------------------------
 # Load model
 # -----------------------------
-model = tf.keras.models.load_model("imdb_simple_rnn_model.h5")
+model = tf.keras.models.load_model("SimpleRNN/simple_rnn_imdb.h5")
+
 
 # -----------------------------
 # Parameters (must match training)
