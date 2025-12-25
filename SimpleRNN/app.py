@@ -25,11 +25,11 @@ st.write(
 # Load model safely (relative path)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.h5")  # ✅ FIXED
+MMODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.h5")
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH, compile=False)
+    return tf.keras.models.load_model(MODEL_PATH)
 
 model = load_model()
 
