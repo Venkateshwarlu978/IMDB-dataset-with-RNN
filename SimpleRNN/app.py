@@ -17,24 +17,21 @@ st.set_page_config(
 
 st.title("🎬 IMDB Movie Review Sentiment Analysis")
 st.write(
-    "Enter a movie review below and predict whether the sentiment is **Positive** or **Negative**."
+    "Enter a movie review below and predict whether the sentiment is "
+    "**Positive** or **Negative**."
 )
 
 # --------------------------------------------------
-# Load model safely (absolute path)
+# Load model safely (relative path)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
+MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.h5")  # ✅ FIXED
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(
-        MODEL_PATH,
-        compile=False
-    )
+    return tf.keras.models.load_model(MODEL_PATH, compile=False)
+
 model = load_model()
-
-
 
 # --------------------------------------------------
 # Parameters (must match training)
@@ -63,7 +60,6 @@ def encode_review(text):
         padding="pre",
         truncating="pre"
     )
-
     return padded
 
 # --------------------------------------------------
@@ -80,19 +76,21 @@ if st.button("🔍 Predict Sentiment"):
         st.warning("⚠️ Please enter a review.")
     else:
         encoded_review = encode_review(review)
-        prediction = model.predict(encoded_review)[0][0]
+        prediction = model.predict(encoded_review, verbose=0)[0][0]
 
         st.markdown("---")
 
         if prediction >= 0.5:
-            st.success(f"✅ **Positive Review**\n\nConfidence: **{prediction:.2f}**")
+            st.success(
+                f"✅ **Positive Review**\n\nConfidence: **{prediction:.2f}**"
+            )
         else:
-            st.error(f"❌ **Negative Review**\n\nConfidence: **{1 - prediction:.2f}**")
+            st.error(
+                f"❌ **Negative Review**\n\nConfidence: **{1 - prediction:.2f}**"
+            )
 
 # --------------------------------------------------
 # Footer
 # --------------------------------------------------
 st.markdown("---")
 st.caption("Built with ❤️ using TensorFlow, Keras, and Streamlit")
-
-
