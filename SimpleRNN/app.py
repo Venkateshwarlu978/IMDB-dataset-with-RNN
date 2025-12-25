@@ -25,7 +25,8 @@ st.write(
 # Load model safely (relative path)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb")
+MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
+
 
 
 
