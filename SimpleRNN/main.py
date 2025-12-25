@@ -1,94 +1,103 @@
-# app.py
-# Streamlit app for IMDB Sentiment Analysis using SimpleRNN
+# main.py
+# IMDB Sentiment Analysis using SimpleRNN
+# Compatible with TensorFlow 2.20 / Keras 3 / Python 3.13
 
-import os
-import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, SimpleRNN, Dense, Input
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
 
-# --------------------------------------------------
-# App configuration
-# --------------------------------------------------
-st.set_page_config(
-    page_title="IMDB Sentiment Analysis",
-    layout="centered"
+# -----------------------------
+# 1. Hyperparameters
+# -----------------------------
+MAX_FEATURES = 10000   # Vocabulary size
+MAX_LEN = 500          # Max review length
+EMBEDDING_DIM = 128
+BATCH_SIZE = 64
+EPOCHS = 7
+
+# -----------------------------
+# 2. Load IMDB Dataset
+# -----------------------------
+(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=MAX_FEATURES)
+
+print(f"Training samples: {len(X_train)}")
+print(f"Test samples: {len(X_test)}")
+
+# -----------------------------
+# 3. Pad Sequences
+# -----------------------------
+X_train = pad_sequences(
+    X_train,
+    maxlen=MAX_LEN,
+    padding="pre",
+    truncating="pre"
 )
 
-st.title("🎬 IMDB Movie Review Sentiment Analysis")
-st.write(
-    "Enter a movie review below and the model will predict whether the sentiment is **Positive** or **Negative**."
+X_test = pad_sequences(
+    X_test,
+    maxlen=MAX_LEN,
+    padding="pre",
+    truncating="pre"
 )
 
-# --------------------------------------------------
-# Load model safely (absolute path)
-# --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
+print("Padded train shape:", X_train.shape)
+print("Padded test shape:", X_test.shape)
 
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model(MODEL_PATH)
+# -----------------------------
+# 4. Build SimpleRNN Model (Keras 3 style)
+# -----------------------------
+model = Sequential([
+    Input(shape=(MAX_LEN,)),
+    Embedding(input_dim=MAX_FEATURES, output_dim=EMBEDDING_DIM),
+    SimpleRNN(128),
+    Dense(1, activation="sigmoid")
+])
 
-model = load_model()
-
-# --------------------------------------------------
-# Parameters (must match training)
-# --------------------------------------------------
-MAX_FEATURES = 10000
-MAX_LEN = 500
-
-# Load IMDB word index
-word_index = imdb.get_word_index()
-
-# --------------------------------------------------
-# Helper function: encode review
-# --------------------------------------------------
-def encode_review(text):
-    words = text.lower().split()
-    encoded = []
-
-    for word in words:
-        index = word_index.get(word)
-        if index is not None and index < MAX_FEATURES:
-            encoded.append(index)
-
-    padded = pad_sequences(
-        [encoded],
-        maxlen=MAX_LEN,
-        padding="pre",
-        truncating="pre"
-    )
-
-    return padded
-
-# --------------------------------------------------
-# Streamlit UI
-# --------------------------------------------------
-review_text = st.text_area(
-    "📝 Enter your movie review here:",
-    height=180,
-    placeholder="This movie was fantastic! The acting and story were amazing..."
+# -----------------------------
+# 5. Compile Model
+# -----------------------------
+model.compile(
+    optimizer=Adam(learning_rate=0.001, clipnorm=1.0),
+    loss="binary_crossentropy",
+    metrics=["accuracy"]
 )
 
-if st.button("🔍 Predict Sentiment"):
-    if review_text.strip() == "":
-        st.warning("⚠️ Please enter a review before predicting.")
-    else:
-        encoded_review = encode_review(review_text)
-        prediction = model.predict(encoded_review)[0][0]
+model.summary()
 
-        st.markdown("---")
-
-        if prediction >= 0.5:
-            st.success(f"✅ **Positive Review**\n\nConfidence: **{prediction:.2f}**")
-        else:
-            st.error(f"❌ **Negative Review**\n\nConfidence: **{1 - prediction:.2f}**")
-
-# --------------------------------------------------
-# Footer
-# --------------------------------------------------
-st.markdown("---")
-st.caption(
-    "Built with ❤️ using TensorFlow, Keras, and Streamlit"
+# -----------------------------
+# 6. Callbacks
+# -----------------------------
+early_stopping = EarlyStopping(
+    monitor="val_loss",
+    patience=2,
+    restore_best_weights=True
 )
+
+# -----------------------------
+# 7. Train Model
+# -----------------------------
+model.fit(
+    X_train,
+    y_train,
+    epochs=EPOCHS,
+    batch_size=BATCH_SIZE,
+    validation_split=0.2,
+    callbacks=[early_stopping]
+)
+
+# -----------------------------
+# 8. Evaluate Model
+# -----------------------------
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f"Test Accuracy: {test_accuracy:.4f}")
+
+# -----------------------------
+# 9. SAVE MODEL (IMPORTANT)
+# -----------------------------
+# This MUST be .keras (not .h5) for Streamlit Cloud
+model.save("simple_rnn_imdb.keras")
+print("Model saved as simple_rnn_imdb.keras")

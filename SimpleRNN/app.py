@@ -28,9 +28,13 @@ MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH)
-
+    return tf.keras.models.load_model(
+        MODEL_PATH,
+        compile=False
+    )
 model = load_model()
+
+
 
 # --------------------------------------------------
 # Parameters (must match training)
