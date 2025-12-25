@@ -1,0 +1,12 @@
+# Jupyter
+.ipynb_checkpoints/
+Untitled.ipynb
+*-checkpoint.ipynb
+*-checkpoint.py
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
