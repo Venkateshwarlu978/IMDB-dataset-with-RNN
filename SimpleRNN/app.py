@@ -27,34 +27,41 @@ st.write(
 # Load model safely (relative path)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
+
+# Use the weights-only file you created with convert_model.py
+MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb_weights.h5")
 
 @st.cache_resource
 def load_model():
-    """Recreate model architecture and load weights (version-safe)"""
-    # Recreate exact model architecture matching the saved config
+    """Recreate architecture and load weights (version-safe)."""
+    # Recreate EXACT model used during training
     input_layer = Input(shape=(500,), name='input_1', dtype='int32')
-    embedding = Embedding(input_dim=10000, output_dim=128, name='embedding')(input_layer)
-    rnn = SimpleRNN(units=128, name='simple_rnn')(embedding)
-    output = Dense(units=1, activation='sigmoid', name='dense')(rnn)
-    
+    embedding = Embedding(
+        input_dim=10000,
+        output_dim=128,
+        name='embedding'
+    )(input_layer)
+    rnn = SimpleRNN(
+        units=128,
+        name='simple_rnn'
+    )(embedding)
+    output = Dense(
+        units=1,
+        activation='sigmoid',
+        name='dense'
+    )(rnn)
+
     model = Model(inputs=input_layer, outputs=output, name='model')
-    
-    # Load weights only (avoids deserialization issues)
+
+    # Load weights from the converted .h5 file
     if os.path.exists(MODEL_PATH):
         model.load_weights(MODEL_PATH)
-        st.info("✅ Model weights loaded successfully")
     else:
-        st.error(f"❌ Model file not found: {MODEL_PATH}")
-    
+        st.error(f"Model weights file not found: {MODEL_PATH}")
     return model
 
-# Load model
-try:
-    model = load_model()
-except Exception as e:
-    st.error(f"Failed to load model: {str(e)}")
-    st.stop()
+# Create global model instance (cached)
+model = load_model()
 
 # --------------------------------------------------
 # Parameters (must match training)
@@ -63,7 +70,7 @@ MAX_FEATURES = 10000
 MAX_LEN = 500
 
 # Load IMDB word index
-word_index = imdb.get_word_index()
+word_index = imdb.get_word_index()  # indices start at 1, with offset 3 in dataset [web:49][web:51]
 
 # --------------------------------------------------
 # Helper function to encode review
@@ -74,8 +81,9 @@ def encode_review(text: str):
 
     for word in words:
         index = word_index.get(word)
+        # IMDB reserves 0,1,2 for <PAD>, <START>, <UNK>, so shift by +3 [web:49]
         if index is not None and index < MAX_FEATURES:
-            encoded.append(index)
+            encoded.append(index + 3)
 
     padded = pad_sequences(
         [encoded],
