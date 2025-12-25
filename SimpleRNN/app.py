@@ -6,6 +6,8 @@ import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import Input, Embedding, SimpleRNN, Dense
+from tensorflow.keras.models import Model
 
 # --------------------------------------------------
 # Streamlit page config
@@ -27,19 +29,32 @@ st.write(
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.keras")
 
-
-
-
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(
-        MODEL_PATH,
-        compile=False,
-        safe_mode=False
-    )
+    """Recreate model architecture and load weights (version-safe)"""
+    # Recreate exact model architecture matching the saved config
+    input_layer = Input(shape=(500,), name='input_1', dtype='int32')
+    embedding = Embedding(input_dim=10000, output_dim=128, name='embedding')(input_layer)
+    rnn = SimpleRNN(units=128, name='simple_rnn')(embedding)
+    output = Dense(units=1, activation='sigmoid', name='dense')(rnn)
+    
+    model = Model(inputs=input_layer, outputs=output, name='model')
+    
+    # Load weights only (avoids deserialization issues)
+    if os.path.exists(MODEL_PATH):
+        model.load_weights(MODEL_PATH)
+        st.info("✅ Model weights loaded successfully")
+    else:
+        st.error(f"❌ Model file not found: {MODEL_PATH}")
+    
+    return model
 
-
-model = load_model()
+# Load model
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Failed to load model: {str(e)}")
+    st.stop()
 
 # --------------------------------------------------
 # Parameters (must match training)
@@ -84,8 +99,9 @@ if st.button("🔍 Predict Sentiment"):
     if review.strip() == "":
         st.warning("⚠️ Please enter a review.")
     else:
-        encoded_review = encode_review(review)
-        prediction = model.predict(encoded_review, verbose=0)[0][0]
+        with st.spinner("Predicting sentiment..."):
+            encoded_review = encode_review(review)
+            prediction = model.predict(encoded_review, verbose=0)[0][0]
 
         st.markdown("---")
 
