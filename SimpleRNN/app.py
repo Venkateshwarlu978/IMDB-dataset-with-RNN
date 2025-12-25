@@ -1,8 +1,9 @@
-# app.py
-# Streamlit app for IMDB Sentiment Analysis (BiLSTM)
-# Compatible with TensorFlow 2.20 / Keras 3
+# SimpleRNN/app.py
+# Streamlit app for IMDB Sentiment Analysis (RNN/BiLSTM)
+# Works with TensorFlow 2.x / Keras 3
 
 import os
+import traceback
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
@@ -23,39 +24,37 @@ st.write(
 )
 
 # --------------------------------------------------
-# Load trained BiLSTM model
+# Model path (CHANGE THIS IF NEEDED)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# put your actual file name here:
+# e.g. "simple_rnn_imdb.h5" or "sentiment_bilstm_imdb.keras"
 MODEL_PATH = os.path.join(BASE_DIR, "sentiment_bilstm_imdb.keras")
 
+# --------------------------------------------------
+# Load trained model with error visibility
+# --------------------------------------------------
 @st.cache_resource
 def load_model():
-    # explicit compile=False avoids some Keras 3 deserialization issues
+    # compile=False helps avoid some Keras 3 deserialization issues
     return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-# try to load model and fail gracefully
 try:
     model = load_model()
 except Exception as e:
-    st.error(
-        "❌ Failed to load the model file "
-        "`sentiment_bilstm_imdb.keras`.\n\n"
-        "Make sure:\n"
-        "- The file exists in the same folder as `app.py`.\n"
-        "- It was saved with the same TensorFlow/Keras version used here.\n"
-    )
-    st.exception(e)
+    st.error("❌ Failed to load the Keras model. See details below.")
+    st.text(f"MODEL_PATH = {MODEL_PATH}")
+    st.text("---- full traceback ----")
+    st.text("".join(traceback.format_exc()))
     st.stop()
 
 # --------------------------------------------------
 # Parameters (MUST match training)
 # --------------------------------------------------
-MAX_FEATURES = 10000
-MAX_LEN = 500
+MAX_FEATURES = 10000   # vocabulary size used in training
+MAX_LEN = 500          # sequence length used in training
 
 # Load IMDB word index
-# If this fails on Streamlit Cloud (no internet), download
-# imdb_word_index.json locally and set path=...
 word_index = imdb.get_word_index()
 
 # --------------------------------------------------
@@ -92,6 +91,7 @@ if st.button("🔍 Predict Sentiment"):
     else:
         with st.spinner("Predicting sentiment..."):
             encoded_review = encode_review(review)
+            # model output shape assumed (batch, 1) with sigmoid
             prediction = model.predict(encoded_review, verbose=0)[0][0]
 
         st.markdown("---")
