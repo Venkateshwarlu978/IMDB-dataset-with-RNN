@@ -26,17 +26,18 @@ st.write(
 # --------------------------------------------------
 # Model path (CHANGE THIS IF NEEDED)
 # --------------------------------------------------
+import os
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# put your actual file name here:
-# e.g. "simple_rnn_imdb.h5" or "sentiment_bilstm_imdb.keras"
 MODEL_PATH = os.path.join(BASE_DIR, "sentiment_bilstm_imdb.keras")
+
+
 
 # --------------------------------------------------
 # Load trained model with error visibility
 # --------------------------------------------------
 @st.cache_resource
 def load_model():
-    # compile=False helps avoid some Keras 3 deserialization issues
     return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 try:
