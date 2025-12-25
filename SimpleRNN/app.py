@@ -30,9 +30,22 @@ MODEL_PATH = os.path.join(BASE_DIR, "sentiment_bilstm_imdb.keras")
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH)
+    # explicit compile=False avoids some Keras 3 deserialization issues
+    return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-model = load_model()
+# try to load model and fail gracefully
+try:
+    model = load_model()
+except Exception as e:
+    st.error(
+        "❌ Failed to load the model file "
+        "`sentiment_bilstm_imdb.keras`.\n\n"
+        "Make sure:\n"
+        "- The file exists in the same folder as `app.py`.\n"
+        "- It was saved with the same TensorFlow/Keras version used here.\n"
+    )
+    st.exception(e)
+    st.stop()
 
 # --------------------------------------------------
 # Parameters (MUST match training)
@@ -41,6 +54,8 @@ MAX_FEATURES = 10000
 MAX_LEN = 500
 
 # Load IMDB word index
+# If this fails on Streamlit Cloud (no internet), download
+# imdb_word_index.json locally and set path=...
 word_index = imdb.get_word_index()
 
 # --------------------------------------------------

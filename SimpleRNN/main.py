@@ -23,7 +23,7 @@ MAX_FEATURES = 10000      # Vocabulary size
 MAX_LEN = 500             # Max review length
 EMBEDDING_DIM = 128
 BATCH_SIZE = 64
-EPOCHS = 15
+EPOCHS = 5
 
 # --------------------------------------------------
 # 2. Load IMDB Dataset
