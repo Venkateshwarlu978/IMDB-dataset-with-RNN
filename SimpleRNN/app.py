@@ -25,7 +25,7 @@ st.write(
 # Load model safely (relative path)
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MMODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.h5")
+MODEL_PATH = os.path.join(BASE_DIR, "simple_rnn_imdb.h5")
 
 @st.cache_resource
 def load_model():
@@ -45,7 +45,7 @@ word_index = imdb.get_word_index()
 # --------------------------------------------------
 # Helper function to encode review
 # --------------------------------------------------
-def encode_review(text):
+def encode_review(text: str):
     words = text.lower().split()
     encoded = []
 
@@ -60,6 +60,7 @@ def encode_review(text):
         padding="pre",
         truncating="pre"
     )
+
     return padded
 
 # --------------------------------------------------
