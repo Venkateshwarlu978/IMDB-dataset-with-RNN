@@ -25,7 +25,7 @@ MAX_FEATURES = 10000      # Vocabulary size
 MAX_LEN = 500             # Max review length
 EMBEDDING_DIM = 128
 BATCH_SIZE = 64
-EPOCHS = 5
+EPOCHS = 8
 
 # --------------------------------------------------
 # 2. Load IMDB Dataset
@@ -66,7 +66,7 @@ model = Sequential([
         input_dim=MAX_FEATURES,
         output_dim=EMBEDDING_DIM
     ),
-    Bidirectional(LSTM(64)),
+    Bidirectional(LSTM(128)),
     Dropout(0.5),
     Dense(1, activation="sigmoid")
 ])
