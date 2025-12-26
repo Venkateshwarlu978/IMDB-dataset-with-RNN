@@ -1,8 +1,8 @@
 # main.py
 # IMDB Sentiment Analysis using BiLSTM
 # Compatible with TensorFlow 2.20 / Keras 3 / Python 3.13
-
 import tensorflow as tf
+print("TF version in main.py:", tf.__version__)  # add this line
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
