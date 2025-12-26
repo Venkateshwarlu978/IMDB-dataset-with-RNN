@@ -1,8 +1,10 @@
 # main.py
 # IMDB Sentiment Analysis using BiLSTM
-# Compatible with TensorFlow 2.20 / Keras 3 / Python 3.13
+# Trains under current TensorFlow and saves an H5 model for the Streamlit app.
+
 import tensorflow as tf
-print("TF version in main.py:", tf.__version__)  # add this line
+print("TF version in main.py:", tf.__version__)
+
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
@@ -108,7 +110,7 @@ test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {test_accuracy:.4f}")
 
 # --------------------------------------------------
-# 9. Save Model (Keras 3 SAFE)
+# 9. Save Model as H5 (for Keras 3 compatibility)
 # --------------------------------------------------
-model.save("sentiment_bilstm_imdb.keras")
-print("Model saved as sentiment_bilstm_imdb.keras")
+model.save("sentiment_bilstm_imdb_tf220.h5", include_optimizer=False)
+print("Model saved as sentiment_bilstm_imdb_tf220.h5")

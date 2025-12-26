@@ -1,6 +1,5 @@
-# SimpleRNN/app.py
-# Streamlit app for IMDB Sentiment Analysis (RNN/BiLSTM)
-# Works with TensorFlow 2.x / Keras 3
+# app.py
+# Streamlit app for IMDB Sentiment Analysis (BiLSTM, H5 model)
 
 import os
 import traceback
@@ -10,12 +9,9 @@ from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # --------------------------------------------------
-# Streamlit page config
+# Page config
 # --------------------------------------------------
-st.set_page_config(
-    page_title="IMDB Sentiment Analysis",
-    layout="centered"
-)
+st.set_page_config(page_title="IMDB Sentiment Analysis", layout="centered")
 
 st.title("🎬 IMDB Movie Review Sentiment Analysis")
 st.write(
@@ -24,20 +20,14 @@ st.write(
 )
 
 # --------------------------------------------------
-# Model path (CHANGE THIS IF NEEDED)
+# Model path (H5 saved by main.py)
 # --------------------------------------------------
-import os
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "sentiment_bilstm_imdb.keras")
+MODEL_PATH = os.path.join(BASE_DIR, "sentiment_bilstm_imdb_tf220.h5")
 
-
-
-# --------------------------------------------------
-# Load trained model with error visibility
-# --------------------------------------------------
 @st.cache_resource
 def load_model():
+    # compile=False avoids loading optimizer state and is safer for inference
     return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 try:
@@ -50,35 +40,21 @@ except Exception as e:
     st.stop()
 
 # --------------------------------------------------
-# Parameters (MUST match training)
+# Parameters (must match main.py)
 # --------------------------------------------------
-MAX_FEATURES = 10000   # vocabulary size used in training
-MAX_LEN = 500          # sequence length used in training
+MAX_FEATURES = 10000
+MAX_LEN = 500
 
 # Load IMDB word index
 word_index = imdb.get_word_index()
 
-# --------------------------------------------------
-# Encode review (same logic as training)
-# --------------------------------------------------
 def encode_review(text: str):
     words = text.lower().split()
-    encoded = []
-
-    for word in words:
-        index = word_index.get(word, 2)  # 2 = <UNK>
-        if index < MAX_FEATURES:
-            encoded.append(index)
-
-    return pad_sequences(
-        [encoded],
-        maxlen=MAX_LEN,
-        padding="pre",
-        truncating="pre"
-    )
+    encoded = [word_index.get(w, 2) for w in words if word_index.get(w, 2) < MAX_FEATURES]
+    return pad_sequences([encoded], maxlen=MAX_LEN, padding="pre", truncating="pre")
 
 # --------------------------------------------------
-# Streamlit UI
+# UI
 # --------------------------------------------------
 review = st.text_area(
     "📝 Enter your movie review:",
@@ -91,20 +67,14 @@ if st.button("🔍 Predict Sentiment"):
         st.warning("⚠️ Please enter a review.")
     else:
         with st.spinner("Predicting sentiment..."):
-            encoded_review = encode_review(review)
-            # model output shape assumed (batch, 1) with sigmoid
-            prediction = model.predict(encoded_review, verbose=0)[0][0]
+            encoded = encode_review(review)
+            score = model.predict(encoded, verbose=0)[0][0]
 
         st.markdown("---")
-
-        if prediction >= 0.5:
-            st.success(
-                f"✅ **Positive Review**\n\nConfidence: **{prediction:.2f}**"
-            )
+        if score >= 0.5:
+            st.success(f"✅ **Positive Review**\n\nConfidence: **{score:.2f}**")
         else:
-            st.error(
-                f"❌ **Negative Review**\n\nConfidence: **{1 - prediction:.2f}**"
-            )
+            st.error(f"❌ **Negative Review**\n\nConfidence: **{1 - score:.2f}**")
 
 # --------------------------------------------------
 # Footer
