@@ -71,7 +71,9 @@ if st.button("🔍 Predict Sentiment"):
             score = model.predict(encoded, verbose=0)[0][0]
 
         st.markdown("---")
-        if score >= 0.5:
+        THRESHOLD = 0.6  # adjust (e.g. 0.7) if you want stricter Positive
+
+        if score >= THRESHOLD:
             st.success(f"✅ **Positive Review**\n\nConfidence: **{score:.2f}**")
         else:
             st.error(f"❌ **Negative Review**\n\nConfidence: **{1 - score:.2f}**")
